@@ -67,6 +67,14 @@ build/%: %.c
 run: $(EXECUTABLE)
 	@./$(EXECUTABLE)
 
+# Timing command usage:
+TIME_CMD    = /usr/bin/time
+TIME_FORMAT = \
+	"CPU Percentage: %P\nReal time: %e sec\nUser time: %U sec"
+
+time: $(EXECUTABLE)
+	@$(TIME_CMD) --quiet --format=$(TIME_FORMAT) $(EXECUTABLE) | cat
+
 #---------------
 # Miscellaneous
 #---------------

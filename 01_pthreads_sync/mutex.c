@@ -27,6 +27,7 @@ const size_t NUM_ITERATIONS = 10000000U;
 
 typedef struct {
     size_t thread_i;
+    pthread_mutex_t* mutex;
 } THREAD_ARGS;
 
 // Variable to race on:
@@ -40,8 +41,22 @@ void* thread_func(void* thread_args)
 
     for (size_t i = 0U; i < NUM_ITERATIONS; ++i)
     {
-        // Basic race condition among the threads:
+        // Basic critical section among the threads:
+        int ret = pthread_mutex_lock(args->mutex);
+        if (ret != 0)
+        {
+            fprintf(stderr, "Unable to call pthread_mutex_lock\n");
+            exit(EXIT_FAILURE);
+        }
+
         var++;
+
+        ret = pthread_mutex_unlock(args->mutex);
+        if (ret != 0)
+        {
+            fprintf(stderr, "Unable to call pthread_mutex_unlock\n");
+            exit(EXIT_FAILURE);
+        }
     }
 
     return NULL;
@@ -58,11 +73,16 @@ typedef struct {
 
 int main()
 {
+    // Initialize mutual exclusion object:
+    // NOTE: by default, use fast mutexes.
+    pthread_mutex_t mutex_var = PTHREAD_MUTEX_INITIALIZER;
+
     // Initialize thread data:
     THREAD_ARGS args[NUM_THREADS];
     for (size_t i = 0U; i < NUM_THREADS; ++i)
     {
         args[i].thread_i = i;
+        args[i].mutex    = &mutex_var;
     }
 
     // Spawn threads:
@@ -121,6 +141,9 @@ int main()
 
     // Print incremented variable:
     printf("Result of the computation: %u\n", var);
+
+    // Destroy mutex object (a formality):
+    pthread_mutex_destroy(&mutex_var);
 
     return EXIT_SUCCESS;
 }

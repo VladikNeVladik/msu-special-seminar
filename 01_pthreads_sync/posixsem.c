@@ -11,6 +11,9 @@
 #include <sched.h>
 // Threads:
 #include <pthread.h>
+// POSIX semaphores:
+#include <sys/stat.h>
+#include <semaphore.h>
 
 //----------------------
 // Benchmark parameters
@@ -27,6 +30,7 @@ const size_t NUM_ITERATIONS = 10000000U;
 
 typedef struct {
     size_t thread_i;
+    sem_t* sem;
 } THREAD_ARGS;
 
 // Variable to race on:
@@ -40,8 +44,22 @@ void* thread_func(void* thread_args)
 
     for (size_t i = 0U; i < NUM_ITERATIONS; ++i)
     {
-        // Basic race condition among the threads:
+        // Basic critical section among the threads:
+        int ret = sem_wait(args->sem);
+        if (ret == -1)
+        {
+            fprintf(stderr, "Unable to lock semaphore lock\n");
+            exit(EXIT_FAILURE);
+        }
+
         var++;
+
+        ret = sem_post(args->sem);
+        if (ret == -1)
+        {
+            fprintf(stderr, "Unable to unlock semaphore lock\n");
+            exit(EXIT_FAILURE);
+        }
     }
 
     return NULL;
@@ -55,14 +73,22 @@ typedef struct {
     pthread_t tid;
 } THREAD_INFO;
 
+const char* KEYSEED_FILE = "/var/tmp/shmem-sem-keyseed-file";
 
 int main()
 {
+    // Initialize POSIX semaphore:
+    sem_t sem;
+    sem_init(&sem, 0 /* sem is not shared */, 1U /* init value */);
+
     // Initialize thread data:
     THREAD_ARGS args[NUM_THREADS];
     for (size_t i = 0U; i < NUM_THREADS; ++i)
     {
-        args[i].thread_i = i;
+        args[i] = (THREAD_ARGS) {
+            .thread_i = i,
+            .sem      = &sem
+        };
     }
 
     // Spawn threads:

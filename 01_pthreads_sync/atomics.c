@@ -11,6 +11,8 @@
 #include <sched.h>
 // Threads:
 #include <pthread.h>
+// Atomics:
+#include <stdatomic.h>
 
 //----------------------
 // Benchmark parameters
@@ -29,8 +31,8 @@ typedef struct {
     size_t thread_i;
 } THREAD_ARGS;
 
-// Variable to race on:
-uint32_t var = 0U;
+// Atomic variable to increment:
+_Atomic uint32_t var = 0U;
 
 void* thread_func(void* thread_args)
 {
@@ -41,7 +43,7 @@ void* thread_func(void* thread_args)
     for (size_t i = 0U; i < NUM_ITERATIONS; ++i)
     {
         // Basic race condition among the threads:
-        var++;
+        atomic_fetch_add_explicit(&var, 1U, memory_order_relaxed);
     }
 
     return NULL;
