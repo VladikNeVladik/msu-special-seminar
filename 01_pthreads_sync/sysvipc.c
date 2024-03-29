@@ -23,7 +23,7 @@
 #define NUM_THREADS 8U
 #define NUM_HARDWARE_THREAD 8U
 
-const size_t NUM_ITERATIONS = 10000000U;
+const size_t NUM_ITERATIONS = 1000000U;
 
 //------------------
 // Thread execution
@@ -86,7 +86,7 @@ typedef struct {
     pthread_t tid;
 } THREAD_INFO;
 
-const char* KEYSEED_FILE = "/var/tmp/shmem-sem-keyseed-file";
+const char* KEYSEED_FILE = "/var/tmp/msu-spec-sem-file";
 
 int main()
 {
@@ -106,24 +106,32 @@ int main()
         exit(EXIT_FAILURE);
     }
 
-    // Pre-initialize semaphore opreations:
-    struct sembuf sem_ops_lock[2] = {
+    // Set initial semaphore value:
+    SEM_UNION sem_init_val =
     {
-        .sem_num = 0, // Operate on sem#0
-        .sem_op  = 0, // Wait for sem value to be 0
-        .sem_flg = 0  // No flags
-    },
-    {
-        .sem_num = 0,       // Operate on sem#0
-        .sem_op  = +1,      // Increase value to one
-        .sem_flg = SEM_UNDO // No flags
-    }};
+        .val = 1U
+    };
 
-    struct sembuf sem_ops_unlock[1] = {
+    int ret = semctl(semset_id, 0U, SETVAL, sem_init_val);
+    if (ret == -1)
+    {
+        fprintf(stderr, "Unable to set SYS V semaphore initial value\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // Pre-initialize semaphore opreations:
+    struct sembuf sem_ops_lock[1] = {
     {
         .sem_num =  0, // Operate on sem#0
         .sem_op  = -1, // Decrease sem value by 1
         .sem_flg =  0  // No flags
+    }};
+
+    struct sembuf sem_ops_unlock[1] = {
+    {
+        .sem_num = 0,  // Operate on sem#0
+        .sem_op  = +1, // Increase value to one
+        .sem_flg = 0   // No flags
     }};
 
     // Initialize thread data:
@@ -146,7 +154,7 @@ int main()
     {
         // Initialize thread attributes:
         pthread_attr_t thread_attributes;
-        int ret = pthread_attr_init(&thread_attributes);
+        ret = pthread_attr_init(&thread_attributes);
         if (ret != 0)
         {
             fprintf(stderr, "Unable to call pthread_attr_init\n");
@@ -186,7 +194,7 @@ int main()
     // Wait for all threads to finish execution:
     for (size_t i = 0; i < NUM_THREADS; ++i)
     {
-        int ret = pthread_join(thread_info[i].tid, NULL);
+        ret = pthread_join(thread_info[i].tid, NULL);
         if (ret != 0)
         {
             fprintf(stderr, "Unable to join thread\n");

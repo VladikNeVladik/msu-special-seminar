@@ -75,6 +75,9 @@ TIME_FORMAT = \
 time: $(EXECUTABLE)
 	@$(TIME_CMD) --quiet --format=$(TIME_FORMAT) $(EXECUTABLE) | cat
 
+create-sysvipc-sem:
+	@touch /var/tmp/msu-spec-sem-file
+
 #---------------
 # Miscellaneous
 #---------------
