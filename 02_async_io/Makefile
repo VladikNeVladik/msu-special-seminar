@@ -14,7 +14,7 @@ CFLAGS = \
 	-Werror
 
 # Linker flags:
-LDFLAGS = -pthread
+LDFLAGS = -pthread -lrt
 
 # Select build mode:
 # NOTE: invoke with "DEBUG=1 make" or "make DEBUG=1".
@@ -60,8 +60,9 @@ DUMMY_DST = build/dummy_dst
 create-src-file: $(DUMMY_SRC)
 
 $(DUMMY_SRC):
-	mkdir -p build
-	dd if=/dev/zero of=$(DUMMY_SRC) bs=256M count=1
+	@mkdir -p build
+	@dd if=/dev/zero of=$(DUMMY_SRC) bs=512M count=1
+	@echo "AAA" >> $(DUMMY_SRC)
 
 #-------------------
 # Build/run process

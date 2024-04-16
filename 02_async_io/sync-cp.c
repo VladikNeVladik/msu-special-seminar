@@ -10,9 +10,9 @@
 
 #define READ_BLOCK_SIZE 4096U
 
-//===========================
-// Copy procedure parameters
-//===========================
+//=====================
+// Main copy procedure
+//=====================
 
 int main(int argc, char* argv[])
 {

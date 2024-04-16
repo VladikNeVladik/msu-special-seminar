@@ -14,8 +14,9 @@
 // Copy procedure parameters
 //===========================
 
-#define NUM_THREADS     8U
-#define READ_BLOCK_SIZE 4096U
+#define NUM_THREADS             8U
+#define NUM_HARDWARE_THREADS    8U
+#define READ_BLOCK_SIZE         4096U
 
 //============================
 // Thread function aprameters
@@ -73,15 +74,15 @@ void* thread_func(void* thread_args)
     return NULL;
 }
 
-//===========================
-// Copy procedure parameters
-//===========================
+//=====================
+// Main copy procedure
+//=====================
 
 int main(int argc, char* argv[])
 {
     if (argc != 3)
     {
-        fprintf(stderr, "Usage: sync-cp <src> <dst>");
+        fprintf(stderr, "Usage: thread-pool-cp <src> <dst>");
         exit(EXIT_FAILURE);
     }
 
@@ -140,7 +141,7 @@ int main(int argc, char* argv[])
         // Assumptions:
         // - There are NUM_HARDWARE_THREAD hardware threads.
         // - All harts from 0 to are present.
-        size_t hart_i = i % NUM_THREADS;
+        size_t hart_i = i % NUM_HARDWARE_THREADS;
         CPU_SET(hart_i, &assigned_harts);
 
         // Set thread affinity:
