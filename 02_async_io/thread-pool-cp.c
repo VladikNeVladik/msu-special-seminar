@@ -15,8 +15,8 @@
 //===========================
 
 #define NUM_THREADS             8U
-#define NUM_HARDWARE_THREADS    8U
-#define READ_BLOCK_SIZE         4096U
+#define NUM_HARDWARE_THREADS    1U
+#define READ_BLOCK_SIZE         512U
 
 //============================
 // Thread function aprameters

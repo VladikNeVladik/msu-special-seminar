@@ -8,7 +8,7 @@
 // Copy procedure parameters
 //===========================
 
-#define READ_BLOCK_SIZE 4096U
+#define READ_BLOCK_SIZE 512U
 
 //=====================
 // Main copy procedure

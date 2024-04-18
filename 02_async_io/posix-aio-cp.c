@@ -9,7 +9,7 @@
 // Copy procedure parameters
 //===========================
 
-#define READ_BLOCK_SIZE 4096U
+#define READ_BLOCK_SIZE 512U
 #define QUEUE_SIZE 16U
 
 //======================
