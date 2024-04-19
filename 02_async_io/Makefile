@@ -1,5 +1,50 @@
 # No copyright. Vladislav Alenik, 2024
 
+#-------
+# Files
+#-------
+
+ifeq ($(PROGRAM),)
+error:
+	@printf "$(BRED)Specify build target!\n"
+endif
+
+EXECUTABLE = build/$(PROGRAM)
+
+# By default, build executable:
+# NOTE: first target in the file is the default.
+default: $(EXECUTABLE)
+
+#-----------------------
+# Dependency management
+#-----------------------
+
+# Liburing:
+LIBURING_LIB_DIR = $(abspath liburing/src/)
+LIBURING_INCLUDE = $(abspath liburing/src/include)
+
+LIBURING_SO = $(LIBURING_LIB_DIR)/liburing.so.2.6
+
+LINK_TO_LIBURING = -L$(LIBURING_LIB_DIR) -Wl,-rpath=$(LIBURING_LIB_DIR) -luring
+
+$(LIBURING_SO):
+	-git clone https://github.com/axboe/liburing.git
+	cd liburing && ./configure
+	cd liburing && $(MAKE)
+
+# Libaio:
+LIBAIO_LIB_DIR = $(abspath libaio/src/)
+LIBAIO_INCLUDE = $(abspath libaio/src/)
+
+LIBAIO_SO = $(LIBAIO_LIB_DIR)/libaio.so.1.0.1
+
+LINK_TO_LIBAIO = -L$(LIBAIO_LIB_DIR) -Wl,-rpath=$(LIBAIO_LIB_DIR) -laio
+
+$(LIBAIO_SO):
+	-git clone https://github.com/crossbuild/libaio.git
+	cd libaio && ./configure
+	cd libaio && $(MAKE)
+
 #-----------------------
 # Compiler/linker flags
 #-----------------------
@@ -11,7 +56,9 @@ CFLAGS = \
 	-std=c2x \
 	-Wall    \
 	-Wextra  \
-	-Werror
+	-Werror \
+	-I $(LIBURING_INCLUDE) \
+	-I $(LIBAIO_INCLUDE)
 
 # Linker flags:
 LDFLAGS = -pthread -lrt
@@ -39,17 +86,6 @@ GREEN   = \033[1;35m
 BCYAN   = \033[1;36m
 RESET   = \033[0m
 
-#-------
-# Files
-#-------
-
-ifeq ($(PROGRAM),)
-error:
-	@printf "$(BRED)Specify build target!\n"
-endif
-
-EXECUTABLE = build/$(PROGRAM)
-
 #-------------
 # Copied file
 #-------------
@@ -68,14 +104,10 @@ $(DUMMY_SRC):
 # Build/run process
 #-------------------
 
-# By default, build executable:
-# NOTE: first target in the file is the default.
-default: $(EXECUTABLE)
-
-build/%: %.c
-	@printf "$(BYELLOW)Building program $(BCYAN)$^$(RESET)\n"
+build/%: %.c $(LIBURING_SO) $(LIBAIO_SO)
+	@printf "$(BYELLOW)Building program $(BCYAN)$<$(RESET)\n"
 	@mkdir -p build
-	$(CC) $< $(CFLAGS) -o $@ $(LDFLAGS)
+	$(CC) $< $(CFLAGS) -o $@ $(LDFLAGS) $(LINK_TO_LIBURING) $(LINK_TO_LIBAIO)
 
 run: $(EXECUTABLE) $(DUMMY_SRC)
 	@./$(EXECUTABLE) $(DUMMY_SRC) $(DUMMY_DST)
