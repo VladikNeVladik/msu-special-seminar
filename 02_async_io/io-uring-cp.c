@@ -9,8 +9,8 @@
 // Copy procedure parameters
 //===========================
 
-#define READ_BLOCK_SIZE 512U
-#define QUEUE_SIZE 16U
+#define READ_BLOCK_SIZE 8192U
+#define QUEUE_SIZE 64U
 
 //================
 // Copying status
@@ -142,7 +142,7 @@ void prepare_write_request(struct CopyStatus* status, unsigned cell)
 
     io_uring_prep_write_fixed(write_sqe, status->dst_fd,
                               status->fixed_buffers[cell].iov_base,
-                              block->size, block->offset, cell);
+                              READ_BLOCK_SIZE, block->offset, cell);
 
     // Update transfer status:
     write_sqe->user_data = cell;
@@ -252,7 +252,7 @@ int main(int argc, char* argv[])
     // End of actual file copying
     //============================
 
-    close_src_dst_files(argv[1], src_fd, argv[2], dst_fd);
+    close_src_dst_files(argv[1], src_fd, src_size, argv[2], dst_fd);
 
     return EXIT_SUCCESS;
 }

@@ -9,8 +9,8 @@
 // Copy procedure parameters
 //===========================
 
-#define READ_BLOCK_SIZE 512U
-#define QUEUE_SIZE 16U
+#define READ_BLOCK_SIZE 8192U
+#define QUEUE_SIZE 64U
 
 //======================
 // Basic AIO operations
@@ -195,7 +195,7 @@ int main(int argc, char* argv[])
     // End of actual file copying
     //============================
 
-    close_src_dst_files(argv[1], src_fd, argv[2], dst_fd);
+    close_src_dst_files(argv[1], src_fd, src_size, argv[2], dst_fd);
 
     return EXIT_SUCCESS;
 }

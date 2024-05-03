@@ -61,9 +61,17 @@ void open_dst_file(const char* filename, int* fd, uint32_t src_size)
 }
 
 void close_src_dst_files(
-    const char* src_filename, int src_fd,
+    const char* src_filename, int src_fd, uint32_t src_size,
     const char* dst_filename, int dst_fd)
 {
+    // Truncate file to specified size:
+    if (ftruncate(dst_fd, src_size) == -1)
+    {
+        fprintf(stderr, "Unable to truncate file '%s': errno=%i (%s)",
+            dst_filename, errno, strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+
     // Ensure destination file reached disk (kind of):
     if (fsync(dst_fd) == -1)
     {
